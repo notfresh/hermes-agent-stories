@@ -12,5 +12,7 @@
   九阶段自然时序回顾：起源 → 代码调研 → 动手实现 → 实战反馈 → 同步运行版 → profile 隔离 → 上游 PR 讨论与放弃 → 报告沉淀 → 科普系列开篇；末尾附决策风格表。
 - [story-4: Hermes 简史——一个开源项目如何从 7 个文件长成一座城](./story-4-hermes-history.md)
   从 `NousResearch/hermes-agent` 的 21,384 次提交里读出的项目成长史。
+- [story-5: 一条原则打破了我对「ABC + orchestrator」的想象](./story-5-abc-orchestrator-extension-mode.md)
+  跳进源码看一条图谱原则，发现「ABC + orchestrator + 内置 provider」不是铁三角——它只是 MemoryProvider 这一家的做法。
 - [story-7: How do I build an agent？——我为什么做、又怎么做自己的 coding agent](./story-7-how-i-built-my-own-coding-agent.md)
   从"读不懂 Hermes 的防御机制"出发，决定自己写一个——把 Hermes 蒸馏一遍，剥掉枝蔓，只留骨架。
