@@ -16,3 +16,5 @@
   跳进源码看一条图谱原则，发现「ABC + orchestrator + 内置 provider」不是铁三角——它只是 MemoryProvider 这一家的做法。
 - [story-7: How do I build an agent？——我为什么做、又怎么做自己的 coding agent](./story-7-how-i-built-my-own-coding-agent.md)
   从"读不懂 Hermes 的防御机制"出发，决定自己写一个——把 Hermes 蒸馏一遍，剥掉枝蔓，只留骨架。
+- [story-8: 一行命令分清 skill 三种出身——我以为很简单，结果卡了我三轮](./story-8-how-to-tell-auto-learned-skills-from-builtin-and-external.md)
+  两个账本交叉判定：`.bundled_manifest` 白名单 = 内置，`.curator_ledger.jsonl` 里 `actor=agent` = 外部装、`actor=curator` = 自动学习。
