@@ -18,3 +18,5 @@
   从"读不懂 Hermes 的防御机制"出发，决定自己写一个——把 Hermes 蒸馏一遍，剥掉枝蔓，只留骨架。
 - [story-8: 一行命令分清 skill 三种出身——我以为很简单，结果卡了我三轮](./story-8-how-to-tell-auto-learned-skills-from-builtin-and-external.md)
   两个账本交叉判定：`.bundled_manifest` 白名单 = 内置，`.curator_ledger.jsonl` 里 `actor=agent` = 外部装、`actor=curator` = 自动学习。
+- [story-9: 一个软链接加 8 行 SKILL.md——我怎么用最小的代价记住一个项目](./story-9-softlink-short-skill-pattern.md)
+  把"指代成本"和"触发语义"拆开：软链接给人记路径，短 skill 给 Hermes 路由，详细约定按需查项目自带文档——每次上下文只花该花的 token。
