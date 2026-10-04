@@ -20,3 +20,5 @@
   两个账本交叉判定：`.bundled_manifest` 白名单 = 内置，`.curator_ledger.jsonl` 里 `actor=agent` = 外部装、`actor=curator` = 自动学习。
 - [story-9: 一个软链接加 8 行 SKILL.md——我怎么用最小的代价记住一个项目](./story-9-softlink-short-skill-pattern.md)
   把"指代成本"和"触发语义"拆开：软链接给人记路径，短 skill 给 Hermes 路由，详细约定按需查项目自带文档——每次上下文只花该花的 token。
+- [story-10: yolo 模式是怎么把危险命令审批的"否决权"夺走的——我又怎样把它放回来](./story-10-yolo-mode-原理与代码分布.md)
+  yolo = 审批门可旁路开关,3 源任一为真即开;但 floors 是审批链最底下的硬地板,yolo 也踩不破。容器里跑,dangerous 检测会被跳过,deny 是唯一剩下的拦截手段——必须写。
