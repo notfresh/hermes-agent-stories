@@ -22,3 +22,5 @@
   把"指代成本"和"触发语义"拆开：软链接给人记路径，短 skill 给 Hermes 路由，详细约定按需查项目自带文档——每次上下文只花该花的 token。
 - [story-10: yolo 模式是怎么把危险命令审批的"否决权"夺走的——我又怎样把它放回来](./story-10-yolo-mode-原理与代码分布.md)
   yolo = 审批门可旁路开关,3 源任一为真即开;但 floors 是审批链最底下的硬地板,yolo 也踩不破。容器里跑,dangerous 检测会被跳过,deny 是唯一剩下的拦截手段——必须写。
+- [story-11: Hermes 一周 2000 commit——我的私有特性怎么活下来](./story-11-keep-a-private-feature-on-top-of-fast-moving-upstream.md)
+  主仓狂奔特性留不下:rebase 累计冲突爆雷,patch + 3-way merge 拿祖宗 B 当锚点重打——"特性小、主仓大"是常态不是侥幸。一周一次脚本化,冲突只在特性改的那几行。
