@@ -114,4 +114,24 @@ git add -A && git commit -m "sync: reapply feat-my-xxx"
 
 Fork + 长期特性分支 + 每周 patch 重打 = 我跟上慢主仓的姿势。特性是你的，冲突面可控，作者合了你优雅退场，不合你永久持有。
 
+
 **一句话总结：** patch 在 Hermes 这种"一周2000 commit 主仓"下能扛，靠的是"特性小、主仓大"是常态；特性深入主仓内核才是 rebase 的主场。
+
+
+## 后续 
+
+patch 也不能直接 apply。
+
+原因跟 rebase 一样：patch 里的 hunk 头写的是旧版文件的行号（比如 cli.py:11964、gateway/run.py:17923），但 main 的这些文件早就不是那个结构了。
+
+error: patch failed: cli.py:11964      ← notfresh 当时基于的行号
+error: patch failed: gateway/run.py:17923 ← main 重写后的文件根本没这行
+error: patch failed: tui_gateway/server.py:17435
+
+结论：
+
+rebase、cherry-pick、format-patch 三种方式在这个场景下遇到的是同一个根本问题——
+
+tui-alias 基于的是 main 重写 gateway/run.py 之前的旧代码（3.2 万行版本），而 main 现在是 6 千行的新结构。
+
+唯一可行的路只有：手动适配。具体就是把那 2 个涉及 gateway/run.py 的 commit 的改动，根据 main 新结构重新写一遍。
