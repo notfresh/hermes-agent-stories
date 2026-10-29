@@ -72,3 +72,5 @@
 
 - [popular-20260902-hermes-multi-surface: Hermes 的多张脸——一个大脑，四种皮肤](./popular-20260902-hermes-multi-surface.md)
   同一个 `/ss` 在 CLI 打印、TUI 弹窗、飞书回话之谜：大脑（agent core，无界面）与四张脸（CLI/TUI/Desktop/Gateway）分离；会话按 source 盖章隔离。
+- [popular-20261029-hermes-module-map: Hermes 的模块地图——四个入口，一层能力，一颗心脏](./popular-20261029-hermes-module-map.md)
+  把 v0.21.5 源码拆成四层：入口（cli/tui/tui_gateway/web/gateway/desktop/acp）、能力扩展（tools/plugins/skills/optional-mcps/plugin-catalog）、长期运行（gateway 常驻形态 + cron）、底座（根目录 48 个 py + agent + 30 个 hermes_state 模块）。附 Footprint Ladder：新能力为什么默认不进核心。
