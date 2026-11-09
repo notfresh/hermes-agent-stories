@@ -40,6 +40,13 @@
 - [principle-20260907-self-learning-loop: Agent 如何记住用户教的纠正——Self-Learning 闭环](./principle-20260907-self-learning-loop.md)
   用户的纠正默认是 session 级临时态，关掉就清零；自学习 = 把临时态转成持久态。闭环四要素：触发器 + 取样器 + 蒸馏器 + 落盘器，零记忆模块——靠文件系统做持久化。
 
+### 教程系列
+
+从零手写一个 Agent，每篇一个能跑起来的能力。代码取自 [mini-hermes-v2](https://github.com/notfresh/mini-hermes-v2)，可对照真实框架源码。
+
+- [tutorial-20261109-01: 手写一个 Agent（第一篇）——三十行核心循环](./tutorial-20261109-01-agent-core-loop.md)
+  Agent = LLM + Tools + Loop。五个动作：问模型 → 要工具就执行并回填 → 不要工具就收工。附多轮上下文静默丢失这个坑（断言要抓"发给 LLM 的请求内容"，而不是返回值）。
+
 ### 元认知系列
 
 关于"怎么看代码"，不是"代码做了什么"。
