@@ -72,7 +72,7 @@ def run(user_message: str) -> str:
             messages=messages,
             tools=TOOLS,
         )
-        msg = resp.choices[0].message
+        msg = resp.choices[0].message          # 这是OpenAI封装的api请求响应结构体定义的，目前照着写就行
 
         if not msg.tool_calls:                # ② 模型不要工具 → 结束
             return msg.content
@@ -155,13 +155,13 @@ Agent 框架长大，几乎全是在处理这个代价。上下文压缩（把�
 system → user("北京天气?") → tool("北京：晴，25℃")
 ```
 
-模型看到一条孤零零的 `tool` 消息，前面没有对应的请求记录。它不知道这个结果是哪来的——API 层面会直接报：
+模型看到一条孤零零的 `tool` 消息，前面没有对应的请求记录。它不知道这个结果是哪来的——API 层面会直接拒绝：
 
 ```
-tool must be a response to a preceding message with tool_calls
+Messages with role 'tool' must be a response to a preceding message with 'tool_calls'
 ```
 
-或者更糟：API 接受了，但模型开始胡言乱语，说些"根据刚才的查询结果"之类的废话，因为它真的不知道刚才发生了什么。
+这不是我猜的，是踩过的真实事故：上下文超长触发压缩后，压缩逻辑把 `assistant[tool_calls]` 和它的 `tool` 结果拆散了，DeepSeek 立刻报这句话。修法是压缩时**按"原子块"切分**——一个 `assistant[tool_calls]` 加它的 N 个 `tool` 结果，要么全留要么全丢，绝不拆散。
 
 **规则**：assistant 的 tool_calls 消息和 tool 结果消息**必须成对出现**，要么一起留，要么一起丢。
 
@@ -313,7 +313,7 @@ while True:
 
 因为**返回值看不出问题**。函数返回的 `msg.content` 完全正确，UI 上显示的回答也完全正确——一切正常，直到第二轮对话时模型开始"失忆"。
 
-所以断言必须**抓"发给 LLM 的请求内容"**，而不是看返回值：
+所以测试必须**抓"发给 LLM 的请求内容"**，而不是看返回值。一个假模型就够用了——它把每次收到的 messages 记下来当"抓包"，测试不用花钱调真 API，也能看见模型实际看到了什么：
 
 ```python
 class FakeLLM:
@@ -327,16 +327,85 @@ class FakeLLM:
         return type("R", (), {"choices": [type("C", (), {"message": msg})()]})()
 ```
 
-断言抓到的第二轮消息里，问和答都在：
+### 断言怎么写才算数
+
+**先看清一件事**：教程代码每轮可能发 1 次或 2 次请求（先要工具、再收工），所以"第 2 轮"不是 `calls[1]`。跑两轮抓包：
+
+```
+calls[0] roles = ['system', 'user']                      ← 第 1 轮：要工具
+calls[1] roles = ['system', 'user', 'assistant', 'tool']  ← 第 1 轮：收工
+calls[2] roles = ['system', 'user', 'assistant', 'tool', 'user']  ← 第 2 轮：真正的目标
+```
+
+断言要落在 `calls[2]` 上，而且**断言的是"第 1 轮的回答在不在"**：
+
+```python
+second = fake_llm.calls[2]                                       # 第 2 轮的首个请求
+assert any("第1轮回答" in str(m.get("content")) for m in second)   # 回答必须在
+```
+
+### 一个反面教材：假绿断言
+
+下面这条断言看起来在做同一件事，实际上**测不到任何东西**：
 
 ```python
 roles = [m.get("role") for m in fake_llm.calls[1]]
 assert "user" in roles and "assistant" in roles
 ```
 
-**还有个更早暴露问题的信号**：上下文一丢，第二次请求里会出现两条 `user` 相邻（上一轮提问 + 本轮提问），OpenAI/DeepSeek 直接报错。用"相邻 role 不得重复"做断言，比断言"少了 assistant"更早报警。
+两个毛病：
 
-这条断言救过我一次。它也顺便说明了一件事：**测试 Agent 行为，要断言"你发给模型的东西"，而不是"你返回的东西"。**
+1. **`calls[1]` 是第 1 轮收工的请求**，不是第 2 轮。测的根本不是下一轮。
+2. **它只检查"有没有 assistant"**，而第 1 轮那条 assistant 是**工具调用**那条，本来就带 `tool_calls`——它跟"最终回答"是两回事。
+
+结果就是：**bug 在场，这条断言照样绿**。实测结果：
+
+```
+calls[1] roles = ['system', 'user', 'assistant', 'tool']
+✓ 断言通过 —— 但 calls[1] 是【第 1 轮收工】的请求，不是第 2 轮！
+
+calls[2] roles = ['system', 'user', 'assistant', 'tool', 'user']
+第 2 轮请求里带着第 1 轮 agent 回答: 否 ← BUG 真实存在
+```
+
+**假绿测试比没测试更危险**——它给你一种"我测过了"的错觉。
+
+怎么保证自己的断言不是假绿？**把修复临时撤掉，看这条断言会不会红**。会红的断言才有效：
+
+```python
+# 撤掉 messages.append({"role": "assistant", "content": msg.content}) 这行
+# → 上面的断言必须红
+# 恢复这行
+# → 断言转绿
+```
+
+### 另一个更早暴露问题的信号
+
+还有一种接线错误：**相邻 user**——上一次请求的 user 和这一次的 user 挨在一起，中间没有 assistant。OpenAI/DeepSeek 直接报错。
+
+实测三种接线方式：
+
+```
+--- 正常接法，丢 assistant 回答 ---
+  calls[2] roles = ['system', 'user', 'assistant', 'tool', 'user']
+
+--- 宿主多存了一条 user（重复 append）---
+  calls[2] roles = ['system', 'user', 'assistant', 'tool', 'user', 'user']  ⚠️ 相邻 user
+
+--- 完全不接历史 ---
+  calls[2] roles = ['system', 'user']
+```
+
+注意第一行：**"丢 assistant 回答"并不会产生相邻 user**。相邻 user 来自另一个原因——宿主把 user 消息也存进了 session，循环里又 append 一次，同一条消息出现两遍。
+
+两种症状、两套根因，别混：
+
+| 症状 | 根因 |
+|---|---|
+| 模型看不见自己上一句回答 | 缺 `messages.append({"role": "assistant", ...})` |
+| 两条 user 相邻，API 报错 | 宿主和循环重复 append 了 user 消息 |
+
+**记住这一条**：测试 Agent 行为，要断言"你发给模型的东西"，而不是"你返回的东西"。
 
 ---
 
