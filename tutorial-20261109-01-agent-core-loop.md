@@ -52,7 +52,7 @@ test_agent.py
 └── test_* × 5         # 五个测试
 ```
 
-还有个 `check_tutorial_refs.py`——校验本文引用的行号和代码跟源文件对得上（防止代码改了、行号漂了，读者一对照就发现错位）。
+还有个 `check_refs.py`——校验本文引用的行号和代码跟源文件对得上（防止代码改了、行号漂了，读者一对照就发现错位）。
 
 跑起来：
 
@@ -63,7 +63,7 @@ cd hermes-agent-stories/examples/tutorial-01
 python test_agent.py           # 离线测试，不用 key，不花钱
 export DEEPSEEK_API_KEY=sk-xxx
 python agent.py                # 连真实模型跑一次
-python check_tutorial_refs.py  # 校验本文的行号引用
+python check_refs.py         # 校验本文的行号引用
 ```
 
 ---
