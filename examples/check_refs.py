@@ -1,19 +1,19 @@
 #!/usr/bin/env python3
 """
-check_tutorial_refs.py — 校验教程里引用的代码和行号
-==================================================
+check_refs.py — 校验教程里引用的代码和行号（通用版）
+===================================================
 
-教程正文会贴 `agent.py:143-157` 这样的行号引用。代码一改，行号就漂，
+教程正文会贴 `tools.py:44-46` 这样的行号引用。代码一改，行号就漂，
 读者一对照就发现对不上——这个脚本专门防这件事。
 
-用法：
-    python check_tutorial_refs.py
+用法（在某个教程目录里）：
+    python ../check_refs.py
 
 检查两件事：
 1. 引用的行号区间，在源文件里必须存在
 2. 教程里贴的代码，必须逐字等于源文件对应行（允许片段标注"节选"）
 
-新增教程时，把 TUTORIALS 加进来即可。
+各教程目录下的 check_refs.py 只是本脚本的一份配置（指定教程名和源文件）。
 """
 
 from __future__ import annotations
@@ -22,19 +22,10 @@ import re
 import sys
 from pathlib import Path
 
-HERE = Path(__file__).resolve().parent
-REPO = HERE.parent.parent          # hermes-agent-stories/
-
-TUTORIALS = [
-    ("tutorial-20261109-01-agent-core-loop.md", {
-        "agent.py": HERE / "agent.py",
-        "test_agent.py": HERE / "test_agent.py",
-    }),
-]
+REPO = Path(__file__).resolve().parent.parent   # hermes-agent-stories/
+HERE = Path(__file__).resolve().parent          # examples/
 
 # 匹配：标题里的（`file.py:A-B`）后面紧跟的 ```python 块
-# 注意：代码块内容里可能含 ``` 之外的反引号，这里用非贪婪匹配，
-# 并且要求 ```python 之后紧跟代码块结束标记，不允许跨越到下一个块。
 BLOCK_RE = re.compile(
     r"（`([\w.]+\.py):(\d+)-(\d+)`）(?P<note>[^\n）]*)"
     r"\s*\n\n```python\n(.*?)\n```",
@@ -73,16 +64,14 @@ def check(tutorial: str, sources: dict[str, Path]) -> list[str]:
         max_line = max(src)
         if lo < 1 or hi > max_line:
             problems.append(
-                f"{tutorial}: {fname}:{lo}-{hi} 越界"
-                f"（文件只有 {max_line} 行）"
+                f"{tutorial}: {fname}:{lo}-{hi} 越界（文件只有 {max_line} 行）"
             )
             continue
 
-        # 用 splitlines 保留空行，行数必须严格相等
         actual_lines = [src.get(i, "").rstrip() for i in range(lo, hi + 1)]
         claimed_lines = [l.rstrip() for l in code.strip("\n").split("\n")]
 
-        # 2. 标了"节选"的允许片段不一致，但区间必须合法
+        # 2. 标了"节选"的允许片段不一致，但每行必须在源区间里
         if "节选" in note:
             src_set = set(actual_lines)
             missing = [l for l in claimed_lines if l.strip() and l not in src_set]
@@ -102,25 +91,21 @@ def check(tutorial: str, sources: dict[str, Path]) -> list[str]:
             continue
 
         if actual_lines != claimed_lines:
-            diff_at = None
             for i in range(len(actual_lines)):
                 if actual_lines[i] != claimed_lines[i]:
-                    diff_at = (i + 1, actual_lines[i], claimed_lines[i])
+                    problems.append(
+                        f"{tutorial}: {fname}:{lo}-{hi} 第 {i + 1} 行不一致\n"
+                        f"      源  : {actual_lines[i]}\n"
+                        f"      教程: {claimed_lines[i]}"
+                    )
                     break
-            if diff_at:
-                n, x, y = diff_at
-                problems.append(
-                    f"{tutorial}: {fname}:{lo}-{hi} 第 {n} 行不一致\n"
-                    f"      源  : {x}\n"
-                    f"      教程: {y}"
-                )
 
     return problems
 
 
-def main() -> int:
+def run(tutorials: list[tuple[str, dict[str, Path]]]) -> int:
     all_problems: list[str] = []
-    for tutorial, sources in TUTORIALS:
+    for tutorial, sources in tutorials:
         all_problems.extend(check(tutorial, sources))
 
     if all_problems:
@@ -133,5 +118,26 @@ def main() -> int:
     return 0
 
 
+def discover() -> list[tuple[str, dict[str, Path]]]:
+    """扫描 examples/ 下的所有 tutorial-* 目录，收集校验配置。
+
+    约定：每个教程目录下的 check_refs.py 里定义了 TUTORIALS。
+    这里直接 import 它们，避免配置分散在两处。
+    """
+    import importlib.util
+
+    found = []
+    for d in sorted(HERE.glob("tutorial-*")):
+        cfg = d / "check_refs.py"
+        if not cfg.exists():
+            continue
+        spec = importlib.util.spec_from_file_location(f"cfg_{d.name}", cfg)
+        mod = importlib.util.module_from_spec(spec)
+        sys.modules[spec.name] = mod
+        spec.loader.exec_module(mod)
+        found.extend(mod.TUTORIALS)
+    return found
+
+
 if __name__ == "__main__":
-    sys.exit(main())
+    sys.exit(run(discover()))
