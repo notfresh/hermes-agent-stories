@@ -48,8 +48,10 @@
   **单文件版，代码全在这一页，复制下来就能跑。**Agent = LLM + Tools + Loop；附多轮上下文静默丢失这个坑，和它的完整复现与修复。
 - [tutorial-20261109-01: 手写一个 Agent（第一篇）——三十行核心循环](./tutorial-20261109-01-agent-core-loop.md)
   **完整版，配套代码仓库 [`examples/tutorial-01/`](./examples/tutorial-01/)**：`agent.py`（可运行的 Agent）+ `test_agent.py`（5 个离线测试，不用 API key）+ `check_refs.py`（校验文中行号引用）。代码片段全部带真实行号引用，可对着源文件看。
-- [tutorial-20261109-02: 手写一个 Agent（第二篇）——工具系统](./tutorial-20261109-02-tool-system.md)
-  **配套代码仓库 [`examples/tutorial-02/`](./examples/tutorial-02/)**：`tools.py`（装饰器注册 + Schema 自动生成）+ `runner.py`（执行器）+ `test_tools.py`（12 个离线测试）。写一个函数，Schema 自动生成；执行器把**所有**错误变成消息回喂给模型；同名注册必须幂等。
+- [tutorial-20261109-02: 手写一个 Agent（第二篇）——工具系统：给 Agent 长出手脚](./tutorial-20261109-02-tool-system.md)
+  **配套代码仓库 [`examples/tutorial-02/`](./examples/tutorial-02/)**：`tools.py`（装饰器注册 + Schema 自动生成）+ `runner.py`（执行器）+ `test_tools.py`（12 个离线测试）。名片（Schema）+ 手（执行器）；语言窄化对比（Python/TS/Go/Java），跨语言原则是「契约只有一个事实来源」。
+- [tutorial-20261109-03: 手写一个 Agent（第三篇）——上下文压缩：给 Agent 长记性](./tutorial-20261109-03-context-compression.md)
+  **配套代码仓库 [`examples/tutorial-03/`](./examples/tutorial-03/)**：`store.py`（消息仓库 + 压缩）+ `test_store.py`（10 个离线测试）。丢中间、保头尾；按「块」压缩绝不拆散 assistant/tool 配对。
 
 ### 元认知系列
 
