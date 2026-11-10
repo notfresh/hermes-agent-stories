@@ -44,8 +44,10 @@
 
 从零手写一个 Agent，每篇一个能跑起来的能力。代码取自 [mini-hermes-v2](https://github.com/notfresh/mini-hermes-v2)，可对照真实框架源码。
 
+- [tutorial-20261109-01-short: 手写一个 Agent（第一篇·精简版）——三十行核心循环](./tutorial-20261109-01-agent-core-loop-short.md)
+  **单文件版，代码全在这一页，复制下来就能跑。**Agent = LLM + Tools + Loop；附多轮上下文静默丢失这个坑，和它的完整复现与修复。
 - [tutorial-20261109-01: 手写一个 Agent（第一篇）——三十行核心循环](./tutorial-20261109-01-agent-core-loop.md)
-  Agent = LLM + Tools + Loop。五个动作：问模型 → 要工具就执行并回填 → 不要工具就收工。附多轮上下文静默丢失这个坑（断言要抓"发给 LLM 的请求内容"，而不是返回值）。
+  **完整版，配套代码仓库 [`examples/tutorial-01/`](./examples/tutorial-01/)**：`agent.py`（可运行的 Agent）+ `test_agent.py`（5 个离线测试，不用 API key）+ `check_tutorial_refs.py`（校验文中行号引用）。代码片段全部带真实行号引用，可对着源文件看。
 
 ### 元认知系列
 
